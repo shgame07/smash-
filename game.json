@@ -1,0 +1,17 @@
+{
+  "fps": 60,
+  "timeLimit": 300,
+  "maxDamage": 999,
+  "forceKO": 150,
+  "knockbackThreshold": 50,
+  "respawnInvincible": 3,
+  "respawnDelay": 1,
+  "attackCooldown": 0.5,
+  "specialCooldown": 0.5,
+  "syncRate": 20,
+  "disconnectTimeout": 60,
+  "nicknameMaxLength": 10,
+  "roomCodeLength": 5,
+  "livesOptions": [1, 2, 3],
+  "livesDefault": 3
+}
