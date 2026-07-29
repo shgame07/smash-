@@ -1,31 +1,25 @@
 name: Update SkyWay Token
-
 on:
   schedule:
-    - cron: '0 0 */2 * *'   # 2日ごと（UTC 0時＝日本時間9時）に自動実行
+    - cron: '0 0 * * *'   # 毎日UTC0時（日本時間9時）に自動実行
   workflow_dispatch:        # 手動実行ボタンも使えるようにする
-
 permissions:
   contents: write
-
 jobs:
   update-token:
     runs-on: ubuntu-latest
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
-
       - name: Node.jsをセットアップ
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - name: 新しいトークンを生成してindex.htmlを更新
         env:
           SKYWAY_APP_ID: ${{ secrets.SKYWAY_APP_ID }}
           SKYWAY_SECRET_KEY: ${{ secrets.SKYWAY_SECRET_KEY }}
         run: node .github/scripts/update-token.js
-
       - name: 変更があればコミット＆プッシュ
         run: |
           git config user.name "github-actions[bot]"
