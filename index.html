@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SMASH!!!</title>
+<style>
+:root {
+  --color-bg: #ffffff;
+  --color-main: #e4002b;
+  --color-text: #1a1a1a;
+  --color-gray: #9a9a9a;
+  --color-gray-light: #e8e8e8;
+  --radius: 14px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  background: var(--color-bg); color: var(--color-text);
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Segoe UI", sans-serif;
+  overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: none;
+}
+#app { position: relative; width: 100%; height: 100%; }
+.screen {
+  position: absolute; inset: 0; display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: calc(12px + var(--safe-top)) 24px calc(12px + var(--safe-bottom));
+  animation: fadeIn 0.2s ease;
+}
+.screen.active { display: flex; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+#screen-boot { background: #fff; }
+.boot-title { color: var(--color-main); font-size: 13vw; font-weight: 900; }
+
+.btn-primary {
+  background: #fff; border: 3px solid var(--color-main); color: var(--color-main);
+  font-size: 1.1rem; font-weight: 700; padding: 14px 32px; border-radius: var(--radius);
+  min-height: 48px; min-width: 44px; cursor: pointer; transition: transform .08s ease, background .15s ease;
+}
+.btn-primary:active:not(:disabled) { background:#ffecec; transform:scale(.97); box-shadow:0 0 12px rgba(228,0,43,.4); }
+.btn-primary:disabled { border-color: var(--color-gray-light); color: var(--color-gray); cursor:not-allowed; }
+.btn-secondary {
+  background: transparent; border: 2px solid var(--color-gray-light); color: var(--color-gray);
+  font-size: .9rem; padding: 8px 20px; border-radius: var(--radius); min-height: 44px; cursor: pointer;
+}
+.btn-secondary:active { background: var(--color-gray-light); }
+.btn-back {
+  position: absolute; top: calc(10px + var(--safe-top)); left: 14px; background: none; border: none;
+  color: var(--color-gray); font-size: .95rem; min-height: 44px; min-width: 44px; cursor: pointer;
+}
+.field-group { display:flex; flex-direction:column; align-items:center; gap:6px; margin:10px 0; }
+.field-group label { font-size:.85rem; color: var(--color-gray); }
+.field-group input {
+  border: 2px solid var(--color-gray-light); border-radius: var(--radius); padding:10px 16px;
+  font-size:1.2rem; text-align:center; width:200px; min-height:44px; color:var(--color-text);
+}
+.field-group input:focus { outline:none; border-color: var(--color-main); }
+.section-label { font-size:.8rem; color:var(--color-gray); margin:4px 0; }
+.divider { width:60%; max-width:320px; height:1px; background:var(--color-gray-light); margin:8px 0; }
+.error-text { color: var(--color-main); font-size:.8rem; min-height:1.1em; }
+.screen-heading { font-size:1.3rem; margin:0 0 6px 0; }
+
+#rotate-warning {
+  display:none; position:fixed; inset:0; z-index:9999; background:#fff;
+  flex-direction:column; align-items:center; justify-content:center; color:var(--color-main); text-align:center;
+}
+.rotate-icon { font-size:3rem; margin-bottom:12px; animation: rotateHint 1.6s ease-in-out infinite; }
+@keyframes rotateHint { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(90deg);} }
+@media (orientation: portrait) { #rotate-warning { display:flex; } }
+
+.title-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
+.game-title { color: var(--color-main); font-size:3rem; font-weight:900; margin:0 0 6px 0; }
+.title-buttons { display:flex; gap:16px; margin-top:8px; }
+.version-label { position:absolute; bottom:calc(10px + var(--safe-bottom)); right:16px; font-size:.7rem; color:var(--color-gray); }
+
+.lives-select { display:flex; flex-direction:column; align-items:center; }
+.lives-options { display:flex; gap:14px; }
+.lives-radio { position:relative; cursor:pointer; }
+.lives-radio input { position:absolute; opacity:0; width:44px; height:44px; cursor:pointer; }
+.lives-radio span {
+  display:flex; align-items:center; justify-content:center; width:44px; height:44px;
+  border:2px solid var(--color-gray-light); border-radius:50%; font-weight:700; color:var(--color-gray);
+}
+.lives-radio input:checked + span { border-color:var(--color-main); color:var(--color-main); background:#ffecec; }
+.room-code-display { text-align:center; }
+.room-code { font-size:2.4rem; font-weight:900; letter-spacing:.15em; color:var(--color-main); }
+.waiting-label { font-size:1.1rem; color:var(--color-gray); margin-bottom:4px; }
+.player-row { display:flex; justify-content:space-between; width:220px; font-size:1rem; }
+.player-role { color:var(--color-gray); }
+.player-name { font-weight:700; }
+
+#screen-character-select { justify-content:flex-start; padding-top:calc(8px + var(--safe-top)); }
+.cs-header { text-align:center; margin-bottom:4px; }
+.cs-header .screen-heading { margin-bottom:2px; }
+.cs-sub { font-size:.85rem; margin:0; }
+.cs-sub-small { font-size:.7rem; color:var(--color-gray); margin:2px 0 0 0; }
+.cs-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; width:100%; max-width:480px; margin:8px auto; }
+.char-card {
+  display:flex; align-items:center; justify-content:center; font-size:2.2rem; aspect-ratio:1;
+  border:3px solid var(--color-gray-light); border-radius:var(--radius); cursor:pointer;
+  transition: transform .1s ease, border-color .1s ease; background:#fff;
+}
+.char-card.selected { border-color:var(--color-main); transform:scale(1.08); box-shadow:0 0 10px rgba(228,0,43,.35); }
+.char-card.disabled { opacity:.3; pointer-events:none; }
+.cs-order-panel { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.cs-order-list { display:flex; gap:10px; list-style:none; padding:0; margin:2px 0; font-size:1.4rem; min-height:1.6em; }
+.cs-opponent-status { font-size:.75rem; color:var(--color-gray); margin:4px 0; }
+.cs-waiting-ready { font-size:.85rem; color:var(--color-gray); }
+
+#screen-countdown { background:#fff; }
+.countdown-text { font-size:4.5rem; font-weight:900; color:var(--color-main); animation:popIn .25s ease; }
+@keyframes popIn { from{transform:scale(.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+#screen-game { padding:0; justify-content:flex-start; }
+#game-top-ui {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: calc(6px + var(--safe-top)) 14px 4px; font-size:.85rem; z-index:2; position:relative;
+}
+.hud-side { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.hud-name { font-size:.75rem; color:var(--color-gray); }
+.hud-hearts { color:var(--color-main); font-size:.9rem; letter-spacing:2px; }
+.hud-center #hud-timer { font-weight:700; font-size:1rem; }
+
+#battle-area {
+  flex:1; width:100%; position:relative; overflow:hidden;
+  background:#fafafa; border-top:1px solid var(--color-gray-light); border-bottom:1px solid var(--color-gray-light);
+}
+#stage-svg { position:absolute; inset:0; width:100%; height:100%; }
+.platform-rect { fill:#1a1a1a; }
+.platform-rect.passthrough { fill:#1a1a1a; opacity:.55; }
+.player-token {
+  position:absolute; font-size:7vh; transform:translate(-50%,-100%); line-height:1; transition: left .05s linear, top .05s linear;
+  z-index: 3;
+}
+.player-token .dmg-label {
+  position:absolute; top:-1.2em; left:50%; transform:translateX(-50%); font-size:.28em; font-weight:700; color:var(--color-main); white-space:nowrap;
+}
+
+#input-area { display:flex; height:22vh; width:100%; }
+.input-half { flex:1; position:relative; }
+#input-move { border-right:1px solid var(--color-gray-light); }
+
+.direction-cross {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:96px; height:96px; pointer-events:none;
+}
+.cross-arm {
+  position:absolute; background:#8a2f42; opacity:.35; border-radius:4px; transition: background .06s ease, opacity .06s ease;
+}
+.cross-arm.up    { left:50%; top:0;    width:18px; height:36px; transform:translateX(-50%); }
+.cross-arm.down  { left:50%; bottom:0; width:18px; height:36px; transform:translateX(-50%); }
+.cross-arm.left  { top:50%;  left:0;   width:36px; height:18px; transform:translateY(-50%); }
+.cross-arm.right { top:50%;  right:0;  width:36px; height:18px; transform:translateY(-50%); }
+.cross-arm.active { background:#ff0000; opacity:.9; box-shadow:0 0 10px rgba(255,0,0,.6); }
+.cross-center {
+  position:absolute; left:50%; top:50%; width:22px; height:22px; border-radius:50%;
+  background:#ff00ff; opacity:.3; transform:translate(-50%,-50%); transition: opacity .06s ease, transform .06s ease;
+}
+.cross-center.active { opacity:.9; transform:translate(-50%,-50%) scale(1.25); }
+
+.stub-note { color:var(--color-gray); font-size:.8rem; text-align:center; padding:0 20px; }
+
+.center-message {
+  position:absolute; left:50%; top:40%; transform:translate(-50%,-50%);
+  font-size:2.4rem; font-weight:900; color:var(--color-main); z-index:5; text-align:center; pointer-events:none;
+}
+
+#disconnect-overlay {
+  display:none; position:absolute; inset:0; z-index:10; background:rgba(255,255,255,.96);
+  flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:0 24px;
+}
+#disconnect-overlay.active { display:flex; }
+#disconnect-overlay p { color: var(--color-main); font-weight:700; }
+</style>
+</head>
+<body>
+
+<div id="rotate-warning">
+  <div class="rotate-icon">📱</div>
+  <p>横画面にしてください</p>
+</div>
+
+<div id="app">
+
+  <section id="screen-boot" class="screen active">
+    <h1 class="boot-title">SMASH!!!</h1>
+  </section>
+
+  <section id="screen-title" class="screen">
+    <div class="title-wrap">
+      <h1 class="game-title">SMASH!!!</h1>
+      <div class="field-group">
+        <label for="nickname-input">ニックネーム</label>
+        <input id="nickname-input" type="text" maxlength="10" placeholder="なまえ">
+      </div>
+      <div class="title-buttons">
+        <button id="btn-create-room" class="btn-primary" disabled>ルームを作る</button>
+        <button id="btn-join-room" class="btn-primary" disabled>ルームに参加</button>
+      </div>
+      <p class="error-text" id="title-error"></p>
+      <div class="version-label">Version 1.0</div>
+    </div>
+  </section>
+
+  <section id="screen-room-create" class="screen">
+    <button class="btn-back" data-target="screen-title">←戻る</button>
+    <h2 class="screen-heading">ルーム作成</h2>
+    <div class="lives-select">
+      <p class="section-label">残機数</p>
+      <div class="lives-options" id="lives-options-create">
+        <label class="lives-radio"><input type="radio" name="lives" value="1"><span>1</span></label>
+        <label class="lives-radio"><input type="radio" name="lives" value="2"><span>2</span></label>
+        <label class="lives-radio"><input type="radio" name="lives" value="3" checked><span>3</span></label>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="room-code-display">
+      <p class="section-label">ルームコード</p>
+      <div class="room-code" id="generated-room-code">-----</div>
+    </div>
+    <div class="divider"></div>
+    <button id="btn-confirm-create" class="btn-primary">ルームを作成</button>
+    <p class="error-text" id="create-error"></p>
+  </section>
+
+  <section id="screen-room-join" class="screen">
+    <button class="btn-back" data-target="screen-title">←戻る</button>
+    <h2 class="screen-heading">ルーム参加</h2>
+    <div class="field-group">
+      <label for="join-code-input">ルームコード</label>
+      <input id="join-code-input" type="tel" maxlength="5" inputmode="numeric" placeholder="12345">
+      <p class="error-text" id="join-error"></p>
+    </div>
+    <button id="btn-confirm-join" class="btn-primary" disabled>参加</button>
+  </section>
+
+  <section id="screen-waiting" class="screen">
+    <p class="waiting-label" id="waiting-label">接続中…</p>
+    <p class="section-label">ルームコード</p>
+    <div class="room-code" id="waiting-room-code">-----</div>
+    <div class="divider"></div>
+    <div class="player-row"><span class="player-role">あなた</span><span class="player-name" id="waiting-self-name">Player</span></div>
+    <div class="divider"></div>
+    <div class="player-row"><span class="player-role">相手</span><span class="player-name" id="waiting-opponent-status">接続待ち…</span></div>
+  </section>
+
+  <section id="screen-character-select" class="screen">
+    <div class="cs-header">
+      <h2 class="screen-heading">キャラクター選択</h2>
+      <p class="cs-sub">残機：<span id="cs-lives-count">3</span></p>
+      <p class="cs-sub-small">選択した順番で出撃します</p>
+    </div>
+    <div class="cs-grid" id="character-grid"></div>
+    <div class="cs-order-panel">
+      <p class="section-label">出撃順</p>
+      <ol id="cs-order-list" class="cs-order-list"></ol>
+      <button id="btn-reset-selection" class="btn-secondary">選択をリセット</button>
+    </div>
+    <p class="cs-opponent-status" id="cs-opponent-status">相手がキャラクターを選択しています…</p>
+    <button id="btn-ready" class="btn-primary" disabled>準備OK</button>
+    <p class="cs-waiting-ready" id="cs-waiting-ready" style="display:none;">相手の準備を待っています…</p>
+  </section>
+
+  <section id="screen-countdown" class="screen">
+    <div class="countdown-text" id="countdown-text">Ready...</div>
+  </section>
+
+  <section id="screen-game" class="screen">
+    <div id="game-top-ui">
+      <div class="hud-side hud-left">
+        <span id="hud-name-left" class="hud-name">Player</span>
+        <span id="hud-hearts-left" class="hud-hearts">♥♥♥</span>
+      </div>
+      <div class="hud-center"><span id="hud-timer">5:00</span></div>
+      <div class="hud-side hud-right">
+        <span id="hud-hearts-right" class="hud-hearts">♥♥♥</span>
+        <span id="hud-name-right" class="hud-name">Player</span>
+      </div>
+    </div>
+
+    <div id="battle-area">
+      <svg id="stage-svg" preserveAspectRatio="none"></svg>
+      <div id="player-token-left" class="player-token">🤸<span class="dmg-label">0%</span></div>
+      <div id="player-token-right" class="player-token">🤸<span class="dmg-label">0%</span></div>
+      <div class="center-message" id="center-message" style="display:none;"></div>
+      <p class="stub-note" id="stub-note">ステージ表示・移動は実装済み。攻撃・ダメージ・撃墜処理は次のステップで実装予定です。</p>
+    </div>
+
+    <div id="input-area">
+      <div id="input-move" class="input-half">
+        <div class="direction-cross">
+          <div class="cross-arm up"></div>
+          <div class="cross-arm down"></div>
+          <div class="cross-arm left"></div>
+          <div class="cross-arm right"></div>
+          <div class="cross-center"></div>
+        </div>
+      </div>
+      <div id="input-attack" class="input-half">
+        <div class="direction-cross">
+          <div class="cross-arm up"></div>
+          <div class="cross-arm down"></div>
+          <div class="cross-arm left"></div>
+          <div class="cross-arm right"></div>
+          <div class="cross-center"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="disconnect-overlay">
+      <p id="disconnect-message">通信が切断されました</p>
+      <button class="btn-primary" id="btn-back-to-title">タイトルへ戻る</button>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+import { SkyWayContext, SkyWayStreamFactory, SkyWayRoom } from "https://cdn.jsdelivr.net/npm/@skyway-sdk/room/+esm";
+// ============================================================
+// SMASH!!! v1.0 — 単一HTMLファイル版（HTML + JSON のみで構成）
+// ============================================================
+
+// あなたのSkyWayシークレットキーはここには含まれていません。
+// 下記は、あなたのAppID/シークレットキーを使って生成した
+// 「有効期限付きの認証トークン(JWT)」のみです。
+// 有効期限: 2027-01-25 ごろ（生成から180日間）。切れたら再生成が必要です。
+const SKYWAY_AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjYjhmYWNmMy01Mzc3LTRlYWQtOWU5NC05ZTYyZGE0NzBlYTQiLCJpYXQiOjE3ODUzMDY0ODgsImV4cCI6MTgwMDg1ODQ4OCwic2NvcGUiOnsiYXBwIjp7ImlkIjoiMzJmMzFlMmQtZWJmYS00NDVlLWFiM2MtMTU4YmMyZDU2MTRkIiwidHVybiI6dHJ1ZSwiYWN0aW9ucyI6WyJyZWFkIl0sImNoYW5uZWxzIjpbeyJpZCI6IioiLCJuYW1lIjoiKiIsImFjdGlvbnMiOlsid3JpdGUiXSwibWVtYmVycyI6W3siaWQiOiIqIiwibmFtZSI6IioiLCJhY3Rpb25zIjpbIndyaXRlIl0sInB1YmxpY2F0aW9uIjp7ImFjdGlvbnMiOlsid3JpdGUiXX0sInN1YnNjcmlwdGlvbiI6eyJhY3Rpb25zIjpbIndyaXRlIl19fV19XX19fQ.6Dy95hVOEfZDI7zqjyGg7CI0C5GAAboAWy5iOI2b-5k";
+
+// ---- Utils ----
+const Utils = {
+  distance(x1,y1,x2,y2){ return Math.hypot(x2-x1,y2-y1); },
+  angle(x1,y1,x2,y2){ return Math.atan2(y2-y1,x2-x1); },
+  async loadJSON(path){
+    const res = await fetch(path);
+    if(!res.ok) throw new Error("JSON読み込み失敗: "+path);
+    return res.json();
+  },
+  generateRoomCode(){
+    let code=""; for(let i=0;i<5;i++) code += Math.floor(Math.random()*10);
+    return code;
+  },
+  isValidNickname(name){ return typeof name==="string" && name.trim().length>0 && name.length<=10; },
+  isValidRoomCode(code){ return /^[0-9]{5}$/.test(code); }
+};
+
+// ---- SkyWay(実接続) ----
+const SkyWay = {
+  context: null,
+  room: null,
+  me: null,
+  dataStream: null,
+  opponentMember: null,
+  onOpponentJoinCallback: null,
+  onDataCallback: null,
+  onOpponentLeftCallback: null,
+
+  async ensureContext(){
+    if(!this.context){
+      this.context = await SkyWayContext.Create(SKYWAY_AUTH_TOKEN);
+    }
+  },
+
+  // ホスト：ルームを新規作成する
+  async createRoom(roomCode){
+    await this.ensureContext();
+    this.room = await SkyWayRoom.Create(this.context, { type: "p2p", name: "smash-" + roomCode });
+    return roomCode;
+  },
+
+  // ゲスト：既存ルームのみ取得。存在しない場合はエラーを投げる
+  async joinRoom(roomCode){
+    await this.ensureContext();
+    this.room = await SkyWayRoom.Find(this.context, { name: "smash-" + roomCode }, "p2p");
+    if(!this.room) throw new Error("ルームが見つかりません");
+    return roomCode;
+  },
+
+  async enterAsMember(nickname){
+    this.me = await this.room.join({ name: nickname + "_" + Math.random().toString(36).slice(2,7) });
+    this.dataStream = await SkyWayStreamFactory.createDataStream();
+    await this.me.publish(this.dataStream);
+
+    this.room.publications.forEach(pub => this._trySubscribe(pub));
+
+    this.room.onStreamPublished.add(({ publication }) => this._trySubscribe(publication));
+    this.room.onMemberLeft.add(({ member }) => {
+      if(this.opponentMember && member.id === this.opponentMember.id && this.onOpponentLeftCallback){
+        this.onOpponentLeftCallback();
+      }
+    });
+  },
+
+  async _trySubscribe(publication){
+    if(!this.me || publication.publisher.id === this.me.id) return;
+    if(publication.contentType !== "data") return;
+    const { stream } = await this.me.subscribe(publication.id);
+    this.opponentMember = publication.publisher;
+    if(this.onOpponentJoinCallback) this.onOpponentJoinCallback();
+    stream.onData.add(data => {
+      if(this.onDataCallback){
+        try {
+          const parsed = typeof data === "string" ? JSON.parse(data) : data;
+          this.onDataCallback(parsed);
+        } catch(e){ console.error("受信データ解析エラー", e); }
+      }
+    });
+  },
+
+  send(obj){
+    if(this.dataStream) this.dataStream.write(JSON.stringify(obj));
+  },
+
+  disconnect(){
+    if(this.me) this.me.leave().catch(()=>{});
+    this.room = null; this.me = null; this.dataStream = null; this.opponentMember = null;
+  }
+};
+
+// ---- 入力方向の可視化(十字表示) ----
+function attachDirectionCross(halfEl, opts){
+  opts = opts || {};
+  const cross = halfEl.querySelector(".direction-cross");
+  const arms = {
+    up: cross.querySelector(".cross-arm.up"),
+    down: cross.querySelector(".cross-arm.down"),
+    left: cross.querySelector(".cross-arm.left"),
+    right: cross.querySelector(".cross-arm.right")
+  };
+  const center = cross.querySelector(".cross-center");
+
+  let startX=0, startY=0, active=false, currentDir=null;
+  const THRESH = 18;
+
+  function clearArms(){
+    Object.keys(arms).forEach(k => arms[k].classList.remove("active"));
+    center.classList.remove("active");
+  }
+  function setDir(dir){
+    if(currentDir === dir) return;
+    clearArms();
+    currentDir = dir;
+    if(dir && arms[dir]) arms[dir].classList.add("active");
+    if(opts.onDirection) opts.onDirection(dir);
+  }
+  function start(x,y){
+    active = true; startX = x; startY = y; currentDir = null;
+    center.classList.add("active");
+  }
+  function move(x,y){
+    if(!active) return;
+    const dx = x-startX, dy = y-startY;
+    const dist = Math.hypot(dx,dy);
+    if(dist < THRESH){ setDir(null); return; }
+    const angleDeg = Math.atan2(dy,dx) * 180/Math.PI;
+    let dir;
+    if(angleDeg > -45 && angleDeg <= 45) dir = "right";
+    else if(angleDeg > 45 && angleDeg <= 135) dir = "down";
+    else if(angleDeg > -135 && angleDeg <= -45) dir = "up";
+    else dir = "left";
+    setDir(dir);
+  }
+  function end(){
+    if(!active) return;
+    active = false;
+    if(!currentDir && opts.onTap) opts.onTap();
+    if(currentDir && opts.onRelease) opts.onRelease(currentDir);
+    clearArms();
+    currentDir = null;
+  }
+
+  halfEl.addEventListener("touchstart", function(e){ const t=e.changedTouches[0]; start(t.clientX,t.clientY); }, {passive:true});
+  halfEl.addEventListener("touchmove", function(e){ const t=e.changedTouches[0]; move(t.clientX,t.clientY); }, {passive:true});
+  halfEl.addEventListener("touchend", function(){ end(); }, {passive:true});
+
+  halfEl.addEventListener("mousedown", function(e){ start(e.clientX,e.clientY); });
+  window.addEventListener("mousemove", function(e){ if(active) move(e.clientX,e.clientY); });
+  window.addEventListener("mouseup", function(){ end(); });
+}
+
+// ---- タイトル画面 ----
+const Title = {
+  init(){
+    const input = document.getElementById("nickname-input");
+    const btnCreate = document.getElementById("btn-create-room");
+    const btnJoin = document.getElementById("btn-join-room");
+
+    const savedName = localStorage.getItem("smash_nickname");
+    if(savedName) input.value = savedName;
+
+    function updateButtons(){
+      const valid = Utils.isValidNickname(input.value);
+      btnCreate.disabled = !valid;
+      btnJoin.disabled = !valid;
+    }
+    updateButtons();
+
+    input.addEventListener("input", function(){
+      localStorage.setItem("smash_nickname", input.value);
+      updateButtons();
+    });
+
+    btnCreate.addEventListener("click", function(){
+      App.state.nickname = input.value.trim();
+      App.showScreen("screen-room-create");
+      Lobby.enterCreateScreen();
+    });
+
+    btnJoin.addEventListener("click", function(){
+      App.state.nickname = input.value.trim();
+      App.showScreen("screen-room-join");
+      Lobby.enterJoinScreen();
+    });
+  }
+};
+
+// ---- ロビー(ルーム作成/参加/待機/キャラ選択/準備) ----
+const Lobby = {
+  selectedLives: 3,
+  selectionOrder: [],
+  opponentSelectionDone: false,
+  opponentReady: false,
+  selfReady: false,
+
+  enterCreateScreen(){
+    this.selectedLives = 3;
+    document.getElementById("create-error").textContent = "";
+    const radios = document.querySelectorAll('#lives-options-create input[name="lives"]');
+    const self = this;
+    radios.forEach(function(r){
+      r.checked = (r.value === "3");
+      r.onchange = function(){ self.selectedLives = parseInt(r.value,10); };
+    });
+    document.getElementById("generated-room-code").textContent = "-----";
+  },
+
+  async confirmCreate(){
+    const btn = document.getElementById("btn-confirm-create");
+    const errorText = document.getElementById("create-error");
+    btn.disabled = true;
+    errorText.textContent = "";
+    try {
+      const code = Utils.generateRoomCode();
+      await SkyWay.createRoom(code);
+      document.getElementById("generated-room-code").textContent = code;
+      App.state.roomCode = code;
+      App.state.isHost = true;
+      App.state.livesCount = this.selectedLives;
+      this.setupDataHandlers();
+      await SkyWay.enterAsMember(App.state.nickname);
+      this.goToWaiting();
+    } catch(e){
+      console.error(e);
+      errorText.textContent = "ルーム作成に失敗しました。通信環境をご確認ください。";
+      btn.disabled = false;
+    }
+  },
+
+  enterJoinScreen(){
+    const input = document.getElementById("join-code-input");
+    const btn = document.getElementById("btn-confirm-join");
+    const errorText = document.getElementById("join-error");
+    input.value = ""; errorText.textContent = ""; btn.disabled = true;
+    const self = this;
+
+    input.oninput = function(){
+      input.value = input.value.replace(/[^0-9]/g,"").slice(0,5);
+      btn.disabled = !Utils.isValidRoomCode(input.value);
+      errorText.textContent = "";
+    };
+
+    btn.onclick = async function(){
+      btn.disabled = true;
+      const code = input.value;
+      try {
+        await SkyWay.joinRoom(code);
+        App.state.roomCode = code;
+        App.state.isHost = false;
+        self.setupDataHandlers();
+        await SkyWay.enterAsMember(App.state.nickname);
+        self.goToWaiting();
+      } catch(e){
+        console.error(e);
+        errorText.textContent = "ルームが見つかりません";
+        btn.disabled = false;
+      }
+    };
+  },
+
+  setupDataHandlers(){
+    const self = this;
+    SkyWay.onOpponentJoinCallback = function(){
+      document.getElementById("waiting-opponent-status").textContent = "接続完了";
+      setTimeout(function(){ self.goToCharacterSelect(); }, 400);
+    };
+    SkyWay.onDataCallback = function(msg){ self.handleMessage(msg); };
+    SkyWay.onOpponentLeftCallback = function(){ self.handleOpponentLeft(); };
+  },
+
+  handleOpponentLeft(){
+    const gameScreen = document.getElementById("screen-game");
+    if(gameScreen.classList.contains("active")){
+      document.getElementById("disconnect-message").textContent = "通信が切断されました。相手の勝利となります。";
+      document.getElementById("disconnect-overlay").classList.add("active");
+    } else {
+      alert("相手との通信が切断されました。タイトルへ戻ります。");
+      SkyWay.disconnect();
+      location.reload();
+    }
+  },
+
+  handleMessage(msg){
+    if(!msg || !msg.type) return;
+    if(msg.type === "select_done"){
+      this.opponentSelectionDone = true;
+      document.getElementById("cs-opponent-status").textContent = "相手の選択が完了しました";
+    } else if(msg.type === "ready"){
+      this.opponentReady = true;
+      this.checkBothReady();
+    } else if(msg.type === "start_countdown"){
+      this.goToCountdown();
+    } else if(msg.type === "pos"){
+      Game.updateTokenPosition(msg.side, msg.x, msg.y);
+    }
+  },
+
+  goToWaiting(){
+    App.showScreen("screen-waiting");
+    document.getElementById("waiting-room-code").textContent = App.state.roomCode;
+    document.getElementById("waiting-self-name").textContent = App.state.nickname;
+    document.getElementById("waiting-opponent-status").textContent = "接続待ち…";
+  },
+
+  goToCharacterSelect(){
+    App.showScreen("screen-character-select");
+    this.selectionOrder = [];
+    this.opponentSelectionDone = false;
+    this.opponentReady = false;
+    this.selfReady = false;
+
+    const lives = App.state.livesCount || 3;
+    document.getElementById("cs-lives-count").textContent = lives;
+    document.getElementById("cs-opponent-status").textContent = "相手がキャラクターを選択しています…";
+    document.getElementById("cs-waiting-ready").style.display = "none";
+
+    const grid = document.getElementById("character-grid");
+    grid.innerHTML = "";
+    const self = this;
+    App.characters.forEach(function(char){
+      const card = document.createElement("div");
+      card.className = "char-card";
+      card.textContent = char.emoji;
+      card.dataset.id = char.id;
+      card.addEventListener("click", function(){ self.selectCharacter(char.id); });
+      grid.appendChild(card);
+    });
+
+    const readyBtn = document.getElementById("btn-ready");
+    readyBtn.disabled = true;
+    readyBtn.onclick = function(){ self.confirmReady(); };
+    document.getElementById("btn-reset-selection").onclick = function(){ self.resetSelection(); };
+
+    this.renderOrder();
+  },
+
+  selectCharacter(id){
+    const lives = App.state.livesCount || 3;
+    if(this.selectionOrder.length >= lives) return;
+    if(this.selectionOrder.includes(id)) return;
+    this.selectionOrder.push(id);
+    this.renderOrder();
+    if(this.selectionOrder.length >= lives){
+      document.getElementById("btn-ready").disabled = false;
+    }
+  },
+
+  resetSelection(){
+    this.selectionOrder = [];
+    document.getElementById("btn-ready").disabled = true;
+    this.renderOrder();
+  },
+
+  renderOrder(){
+    const lives = App.state.livesCount || 3;
+    const grid = document.getElementById("character-grid");
+    const self = this;
+    Array.from(grid.children).forEach(function(card){
+      const isSelected = self.selectionOrder.includes(card.dataset.id);
+      card.classList.toggle("selected", isSelected);
+      card.classList.toggle("disabled", self.selectionOrder.length >= lives && !isSelected);
+    });
+    const orderList = document.getElementById("cs-order-list");
+    orderList.innerHTML = "";
+    this.selectionOrder.forEach(function(id, idx){
+      const char = App.characters.find(function(c){ return c.id === id; });
+      const li = document.createElement("li");
+      li.textContent = (idx+1) + " " + char.emoji;
+      orderList.appendChild(li);
+    });
+  },
+
+  confirmReady(){
+    this.selfReady = true;
+    document.getElementById("btn-ready").disabled = true;
+    document.getElementById("cs-waiting-ready").style.display = "block";
+    App.state.selectionOrder = this.selectionOrder.slice();
+    SkyWay.send({ type: "select_done" });
+    SkyWay.send({ type: "ready" });
+    this.checkBothReady();
+  },
+
+  checkBothReady(){
+    if(this.selfReady && this.opponentReady){
+      if(App.state.isHost){
+        SkyWay.send({ type: "start_countdown" });
+        this.goToCountdown();
+      }
+    }
+  },
+
+  goToCountdown(){
+    App.showScreen("screen-countdown");
+    const el = document.getElementById("countdown-text");
+    const sequence = ["Ready...","3","2","1","GO!!"];
+    const delays = [1000,700,700,700,700];
+    let i = 0;
+    function step(){
+      el.textContent = sequence[i];
+      if(i < sequence.length-1){
+        setTimeout(function(){ i++; step(); }, delays[i]);
+      } else {
+        setTimeout(function(){ Game.start(); }, delays[i]);
+      }
+    }
+    step();
+  }
+};
+
+// ---- ゲーム画面(ステージ描画・HUD・入力可視化・簡易移動) ----
+const Game = {
+  playerX: 0, playerY: 0,
+  localSide: "left",
+  moveDir: null,
+  _inputBound: false,
+  _loopStarted: false,
+  _lastSent: 0,
+
+  start(){
+    App.showScreen("screen-game");
+    this.localSide = App.state.isHost ? "left" : "right";
+    document.getElementById("hud-name-left").textContent = App.state.isHost ? App.state.nickname : "相手";
+    document.getElementById("hud-name-right").textContent = App.state.isHost ? "相手" : App.state.nickname;
+
+    this.renderStage();
+    this.setupInput();
+
+    const stage = App.stageData;
+    const spawn = stage.spawnPoints[this.localSide];
+    this.playerX = spawn.x; this.playerY = spawn.y;
+    this.updateTokenPosition("left", stage.spawnPoints.left.x, stage.spawnPoints.left.y);
+    this.updateTokenPosition("right", stage.spawnPoints.right.x, stage.spawnPoints.right.y);
+
+    this._lastSent = 0;
+    if(!this._loopStarted){
+      this._loopStarted = true;
+      requestAnimationFrame(() => this.loop());
+    }
+  },
+
+  renderStage(){
+    const stage = App.stageData;
+    const svg = document.getElementById("stage-svg");
+    svg.setAttribute("viewBox", "0 0 " + stage.width + " " + stage.height);
+    svg.innerHTML = "";
+    stage.platforms.forEach(function(p){
+      const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", p.x);
+      rect.setAttribute("y", p.y);
+      rect.setAttribute("width", p.width);
+      rect.setAttribute("height", 0.4);
+      rect.setAttribute("class", "platform-rect" + (p.passThrough ? " passthrough" : ""));
+      svg.appendChild(rect);
+    });
+  },
+
+  updateTokenPosition(side, gx, gy){
+    const el = document.getElementById("player-token-" + side);
+    const battleArea = document.getElementById("battle-area");
+    const stage = App.stageData;
+    const w = battleArea.clientWidth, h = battleArea.clientHeight;
+    const px = (gx / stage.width) * w;
+    const py = (gy / stage.height) * h;
+    el.style.left = px + "px";
+    el.style.top = py + "px";
+  },
+
+  setupInput(){
+    if(this._inputBound) return;
+    this._inputBound = true;
+    const moveEl = document.getElementById("input-move");
+    const attackEl = document.getElementById("input-attack");
+    const self = this;
+
+    attachDirectionCross(moveEl, {
+      onDirection: function(dir){ self.moveDir = (dir === "left" || dir === "right") ? dir : null; },
+      onRelease: function(){ self.moveDir = null; }
+    });
+    attachDirectionCross(attackEl, {
+      onTap: function(){ /* TODO: 通常攻撃(次ステップで実装) */ },
+      onDirection: function(){},
+      onRelease: function(){}
+    });
+
+    document.getElementById("btn-back-to-title").addEventListener("click", function(){
+      SkyWay.disconnect();
+      location.reload();
+    });
+  },
+
+  loop(){
+    const stage = App.stageData;
+    const speed = 0.12;
+    if(this.moveDir === "left") this.playerX = Math.max(stage.walls.left, this.playerX - speed);
+    if(this.moveDir === "right") this.playerX = Math.min(stage.walls.right, this.playerX + speed);
+
+    this.updateTokenPosition(this.localSide, this.playerX, this.playerY);
+
+    const now = performance.now();
+    if(now - this._lastSent > 50){
+      SkyWay.send({ type:"pos", side:this.localSide, x:this.playerX, y:this.playerY });
+      this._lastSent = now;
+    }
+    requestAnimationFrame(() => this.loop());
+  }
+};
+
+// ---- アプリ全体 ----
+const App = {
+  state: { nickname:"", roomCode:null, isHost:false, livesCount:3, selectionOrder:[] },
+  characters: [], gameConfig: null, stageData: null,
+
+  showScreen(id){
+    document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+  },
+
+  async init(){
+    try {
+      const results = await Promise.all([
+        Utils.loadJSON("data/characters.json"),
+        Utils.loadJSON("data/game.json"),
+        Utils.loadJSON("data/stage.json")
+      ]);
+      this.characters = results[0];
+      this.gameConfig = results[1];
+      this.stageData = results[2];
+    } catch(e){ console.error("データ読み込みエラー:", e); }
+
+    Title.init();
+    this.bindStaticButtons();
+    setTimeout(() => this.showScreen("screen-title"), 1500);
+  },
+
+  bindStaticButtons(){
+    document.querySelectorAll(".btn-back").forEach(function(btn){
+      btn.addEventListener("click", function(){ App.showScreen(btn.dataset.target); });
+    });
+    document.getElementById("btn-confirm-create").addEventListener("click", function(){ Lobby.confirmCreate(); });
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => App.init());
+</script>
+</body>
+</html>
