@@ -1,0 +1,23 @@
+{
+  "id": "main",
+  "name": "メインステージ",
+  "width": 40,
+  "height": 20,
+  "koLine": 19.5,
+  "walls": { "left": 0, "right": 40 },
+  "platforms": [
+    { "id": "main",   "x": 9,  "y": 15, "width": 22, "passThrough": false },
+    { "id": "center", "x": 16, "y": 5,  "width": 8,  "passThrough": true },
+    { "id": "left",   "x": 12, "y": 10, "width": 6,  "passThrough": true },
+    { "id": "right",  "x": 22, "y": 10, "width": 6,  "passThrough": true }
+  ],
+  "spawnPoints": {
+    "left":  { "x": 11, "y": 14, "facing": "right" },
+    "right": { "x": 28, "y": 14, "facing": "left" }
+  },
+  "respawnPoint": { "x": 20, "y": 2 },
+  "hud": {
+    "left":  { "x": 7,  "width": 3 },
+    "right": { "x": 30, "width": 3 }
+  }
+}
