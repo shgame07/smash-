@@ -1,0 +1,151 @@
+[
+  {
+    "id": "human",
+    "emoji": "🤸",
+    "name": "人間",
+    "concept": "バランスタイプ",
+    "hp": 100,
+    "moveSpeed": 100,
+    "jumpPower": 100,
+    "knockbackResistance": 100,
+    "attackPower": 100,
+    "cooldown": 0.5,
+    "baseKnockback": 3,
+    "normalAttack": {
+      "name": "パンチ",
+      "emoji": "🔅",
+      "damage": 10,
+      "range": 2,
+      "shape": "fan45"
+    },
+    "specialAttack": {
+      "name": "マジ殴り",
+      "emoji": "🔆",
+      "damage": 30,
+      "range": 3,
+      "shape": "fan45"
+    }
+  },
+  {
+    "id": "phoenix",
+    "emoji": "🐦‍🔥",
+    "name": "フェニックス",
+    "concept": "高機動・高火力型",
+    "hp": 90,
+    "moveSpeed": 115,
+    "jumpPower": 105,
+    "knockbackResistance": 90,
+    "attackPower": 110,
+    "cooldown": 0.5,
+    "baseKnockback": 3,
+    "normalAttack": {
+      "name": "つむじ風",
+      "emoji": "🌪️",
+      "damage": 12,
+      "range": 2,
+      "shape": "fan45"
+    },
+    "specialAttack": {
+      "name": "フェニックスチャージ",
+      "emoji": "☄️",
+      "damage": 33,
+      "speed": 5,
+      "distance": 6,
+      "selfDamage": 5,
+      "type": "dash"
+    }
+  },
+  {
+    "id": "fairy",
+    "emoji": "🧚",
+    "name": "妖精",
+    "concept": "設置・追尾型",
+    "hp": 95,
+    "moveSpeed": 100,
+    "jumpPower": 110,
+    "knockbackResistance": 95,
+    "attackPower": 90,
+    "cooldown": 0.5,
+    "baseKnockback": 4,
+    "normalAttack": {
+      "name": "フェアリーダスト",
+      "emoji": "✨",
+      "damage": 8,
+      "range": 2,
+      "shape": "fan45"
+    },
+    "specialAttack": {
+      "name": "ホーミングスター",
+      "emoji": "🌟",
+      "explodeEmoji": "🫯",
+      "damage": 15,
+      "homingTime": 8,
+      "maxCount": 5,
+      "target": "nearest",
+      "type": "homing"
+    }
+  },
+  {
+    "id": "snowman",
+    "emoji": "⛄",
+    "name": "雪だるま",
+    "concept": "遠距離制圧型",
+    "hp": 115,
+    "moveSpeed": 85,
+    "jumpPower": 90,
+    "knockbackResistance": 120,
+    "attackPower": 100,
+    "cooldown": 0.5,
+    "baseKnockback": 3,
+    "normalAttack": {
+      "name": "スノーボール",
+      "emoji": "◽",
+      "damage": 10,
+      "speed": 5,
+      "piercePlatform": true,
+      "stopAtWall": true,
+      "type": "projectile"
+    },
+    "specialAttack": {
+      "name": "フリーズショット",
+      "emoji": "❄️",
+      "damage": 28,
+      "speed": 4,
+      "freezeTime": 1,
+      "piercePlatform": true,
+      "stopAtWall": true,
+      "type": "projectile"
+    }
+  },
+  {
+    "id": "microbe",
+    "emoji": "🦠",
+    "name": "ゾウリムシ",
+    "concept": "分身・かく乱型",
+    "hp": 85,
+    "moveSpeed": 105,
+    "jumpPower": 95,
+    "knockbackResistance": 80,
+    "attackPower": 90,
+    "cooldown": 0.5,
+    "baseKnockback": 2,
+    "normalAttack": {
+      "name": "細胞アタック",
+      "emoji": "🫧",
+      "damage": 8,
+      "range": 1,
+      "shape": "fan45"
+    },
+    "specialAttack": {
+      "name": "分裂",
+      "emoji": "🦠",
+      "damage": 25,
+      "maxCount": 3,
+      "cloneHP": 1,
+      "cloneSpeed": 2.5,
+      "jump": false,
+      "destroyOnHit": true,
+      "type": "clone"
+    }
+  }
+]
